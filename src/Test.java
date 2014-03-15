@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Test {
 
@@ -7,10 +10,17 @@ public class Test {
 		a.add(b);
 		a.add(b);
 		a.add(b);
+		a.add(99, 1);
 		a.add(6);
+		a.add(7);
+		a.add(8);
+		a.add(9);
+		List<Integer> mas = new ArrayList<Integer>();
+		mas.add(b);
 		System.out.println(a.size());		
-		System.out.println(a.remove(b));
+		System.out.println(a.retainAll(mas));
 		System.out.println(a.size());
+		System.out.println(a.contains(99));
 	}
 
 }

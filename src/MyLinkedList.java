@@ -1,5 +1,6 @@
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class MyLinkedList<E> implements java.util.Collection<E> {
 	static class Entry<E> {
@@ -16,27 +17,30 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 
 	private class MyLinkedListIterator implements Iterator<E> {
 		private Entry<E> current;
-		private int currentIndex = -1;
-
+		private int currentIndex;
+		
 		private MyLinkedListIterator() {
-			this.current = MyLinkedList.this.header;
+			this.current = header;
+			currentIndex = -1;
 		}
 
 		@Override
 		public E next() {
 			current = current.next;
 			currentIndex += 1;
+			if (current == header || currentIndex >= size) throw new NoSuchElementException();		
 			return current.element;
 		}
 
 		@Override
 		public void remove() {
-			MyLinkedList.this.remove(current);
+			if (current == header) throw new IllegalStateException("Trying delete header");
+			removeEntry(current);
 		}
 
 		@Override
 		public boolean hasNext() {
-			if (currentIndex < MyLinkedList.this.size)
+			if (currentIndex + 1 < size)
 				return true;
 			else
 				return false;
@@ -111,23 +115,18 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 	public Iterator<E> iterator() {
 		return new MyLinkedListIterator();
 	}
-
-	// TODO ask about this
+	
 	@Override
 	public boolean remove(Object o) {
-		Entry<E> e = header;
-		int i = 0;
-		while (i < size) {
-			e = e.next;
-			if (e.element.equals(o)) {
-				removeEntry(e);
-				return true;
-			}
-			i++;
-		}
-		return false;
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            if (o.equals(it.next())) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
 	}
-
 	public boolean remove(int index) {
 		Entry<E> e = getElement(index);
 		removeEntry(e);
@@ -139,8 +138,8 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 		e.prev.next = e.next;
 		e.next.prev = e.prev;
 		// delete entry
-		e.next = e.prev = null;
-		e.element = null;
+		//e.next = e.prev = null;
+		//e.element = null;
 		size--;
 		return true;
 	}
@@ -148,10 +147,14 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean flag = false;
-		for (Object o : c)
-			if (remove(o))
-				flag = true;
-		return flag;
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            if (c.contains(it.next())) {
+                it.remove();
+                flag = true;
+            }
+        }
+        return flag;
 	}
 
 	@Override
