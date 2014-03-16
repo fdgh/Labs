@@ -3,10 +3,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class MyLinkedList<E> implements java.util.Collection<E> {
-	static class Entry<E> {
-		E element;
-		Entry<E> next;
-		Entry<E> prev;
+	private static class Entry<E> {
+		private E element;
+		private Entry<E> next;
+		private Entry<E> prev;
 
 		Entry(E element, Entry<E> next, Entry<E> prev) {
 			this.element = element;
@@ -17,43 +17,41 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 
 	private class MyLinkedListIterator implements Iterator<E> {
 		private Entry<E> current;
-		private int currentIndex;
-		
+
 		private MyLinkedListIterator() {
 			this.current = header;
-			currentIndex = -1;
 		}
 
 		@Override
 		public E next() {
 			current = current.next;
-			currentIndex += 1;
-			if (current == header || currentIndex >= size) throw new NoSuchElementException();		
+			if (current == header)
+				throw new NoSuchElementException();
 			return current.element;
 		}
 
 		@Override
 		public void remove() {
-			if (current == header) throw new IllegalStateException("Trying delete header");
+			if (current == header)
+				throw new IllegalStateException("Trying delete header");
 			removeEntry(current);
 		}
 
 		@Override
 		public boolean hasNext() {
-			if (currentIndex + 1 < size)
-				return true;
-			else
+			if (current.next == header)
 				return false;
+			else
+				return true;
 		}
 	}
 
 	private int size;
-	 Entry<E> header;
+	Entry<E> header;
 
 	public MyLinkedList() {
 		size = 0;
-		header = new Entry<E>(null, header, header);
-		// TODO find out why constructor does't work in this case
+		header = new Entry<E>(null, null, null);
 		header.prev = header.next = header;
 	}
 
@@ -64,10 +62,11 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 	}
 
 	public boolean add(E e, int index) {
-		insert(e, getElement(index));
+		insert(e, getEntry(index));
 		return true;
 	}
 
+	// insert newEntry before current
 	private void insert(E e, Entry<E> current) {
 		Entry<E> newEntry = new Entry<E>(e, current, current.prev);
 		newEntry.prev.next = newEntry;
@@ -90,12 +89,7 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 
 	@Override
 	public boolean contains(Object o) {
-		Iterator<E> it = iterator();
-		while (it.hasNext()) {
-			if (it.next().equals(o))
-				return true;
-		}
-		return false;
+		return getEntry(o) != null;
 	}
 
 	@Override
@@ -115,60 +109,52 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 	public Iterator<E> iterator() {
 		return new MyLinkedListIterator();
 	}
-	
+
 	@Override
 	public boolean remove(Object o) {
-        Iterator<E> it = iterator();
-        while (it.hasNext()) {
-            if (o.equals(it.next())) {
-                it.remove();
-                return true;
-            }
-        }
-        return false;
+		Entry<E> entry = getEntry(o);	
+		return entry != null ? removeEntry(entry) : false;
 	}
+
 	public boolean remove(int index) {
-		Entry<E> e = getElement(index);
-		removeEntry(e);
-		return true;
+		Entry<E> e = getEntry(index);	
+		return removeEntry(e);
 	}
 
 	private boolean removeEntry(Entry<E> e) {
+		if (e == null)
+			throw new NoSuchElementException();
 		// change pointers
 		e.prev.next = e.next;
 		e.next.prev = e.prev;
-		// delete entry
-		//e.next = e.prev = null;
-		//e.element = null;
 		size--;
 		return true;
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		boolean flag = false;
-        Iterator<E> it = iterator();
-        while (it.hasNext()) {
-            if (c.contains(it.next())) {
-                it.remove();
-                flag = true;
-            }
-        }
-        return flag;
+		boolean isModified = false;
+		Iterator<E> it = iterator();
+		while (it.hasNext()) {
+			if (c.contains(it.next())) {
+				it.remove();
+				isModified = true;
+			}
+		}
+		return isModified;
 	}
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		boolean flag = false;
-        Iterator<E> it = iterator();
-        while (it.hasNext()) {
-            if (!c.contains(it.next())) {
-                it.remove();
-                flag = true;
-            }
-        }
-        return flag;
-		
+		boolean isModified = false;
+		Iterator<E> it = iterator();
+		while (it.hasNext()) {
+			if (!c.contains(it.next())) {
+				it.remove();
+				isModified = true;
+			}
+		}
+		return isModified;
 	}
 
 	@Override
@@ -193,21 +179,44 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 		return null;
 	}
 
-	private Entry<E> getElement(int index) {
+	private Entry<E> getEntry(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
 					+ size);
 
 		Entry<E> e = header;
 
-		if (index < (size >> 1)) {
-			for (int i = 0; i <= index; i++)
+		if (index < (size >> 1))
+			for (int i = 0; i <= index; i++) {
 				e = e.next;
-		} else {
-			for (int i = size; i > index; i--)
+			}
+		else
+			for (int i = size; i > index; i--) {
 				e = e.prev;
-		}
+			}
 
 		return e;
+	}
+	
+	// TODO need to test and change
+	private Entry<E> getEntry(Object o){
+		Entry<E> entry = header;
+		while (entry.next != null) {
+			entry = entry.next;
+			if (o == null){
+				if (entry.element == null)
+					return entry;
+				else
+					continue;
+			}
+	// "o" cannot be null there, so we can use equals
+			if (o.equals(entry.element))
+				return entry;
+		}
+		return null;	
+	}
+	
+	public E getElement(int index){
+		return getEntry(index).element;		
 	}
 }
