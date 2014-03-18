@@ -1,8 +1,9 @@
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MyLinkedList<E> implements java.util.Collection<E> {
+public class MyLinkedList<E> extends AbstractCollection<E>{
 	private static class Entry<E> {
 		private E element;
 		private Entry<E> next;
@@ -17,9 +18,11 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 
 	private class MyLinkedListIterator implements Iterator<E> {
 		private Entry<E> current;
-
+		private boolean isRemoved;
+		
 		private MyLinkedListIterator() {
 			this.current = header;
+			this.isRemoved = false;
 		}
 
 		@Override
@@ -27,13 +30,15 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 			current = current.next;
 			if (current == header)
 				throw new NoSuchElementException();
+			isRemoved = false;
 			return current.element;
 		}
 
 		@Override
-		public void remove() {
-			if (current == header)
-				throw new IllegalStateException("Trying delete header");
+		public void remove() {		
+			if (current == header || isRemoved)
+				throw new IllegalStateException();
+			isRemoved = true;
 			removeEntry(current);
 		}
 
@@ -162,7 +167,7 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 		return size;
 	}
 
-	@Override
+	/*@Override
 	public Object[] toArray() {
 		Object[] array = new Object[size];
 		Iterator<E> it = iterator();
@@ -172,12 +177,7 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 		}
 		return array;
 	}
-
-	@Override
-	public Object[] toArray(Object[] a) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	*/
 
 	private Entry<E> getEntry(int index) {
 		if (index < 0 || index >= size)
@@ -198,20 +198,13 @@ public class MyLinkedList<E> implements java.util.Collection<E> {
 		return e;
 	}
 	
-	// TODO need to test and change
+	// TODO need to test
 	private Entry<E> getEntry(Object o){
 		Entry<E> entry = header;
 		while (entry.next != null) {
 			entry = entry.next;
-			if (o == null){
-				if (entry.element == null)
+			if (o == null ? entry.element == o : o.equals(entry.element))
 					return entry;
-				else
-					continue;
-			}
-	// "o" cannot be null there, so we can use equals
-			if (o.equals(entry.element))
-				return entry;
 		}
 		return null;	
 	}
