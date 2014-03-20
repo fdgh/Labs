@@ -61,8 +61,7 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 		header.prev = header.next = header;
 	}
 
-	@Override
-	public boolean add(E e) {
+	public boolean addLast(E e) {
 		insert(e, header);
 		return true;
 	}
@@ -72,6 +71,12 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 		return true;
 	}
 
+	
+	public boolean addFirst(E e) {
+		insert(e, header.next);
+		return true;
+	}
+	
 	// insert newEntry before current
 	private void insert(E e, Entry<E> current) {
 		Entry<E> newEntry = new Entry<E>(e, current, current.prev);
@@ -83,7 +88,7 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		for (E e : c)
-			add(e);
+			addLast(e);
 		return true;
 	}
 
@@ -116,6 +121,51 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 		return new MyLinkedListIterator();
 	}
 
+	private Entry<E> getEntry(int index) {
+		if (index < 0 || index >= size)
+			throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
+					+ size);
+	
+		Entry<E> e = header;
+	
+		if (index < (size >> 1))
+			for (int i = 0; i <= index; i++) {
+				e = e.next;
+			}
+		else
+			for (int i = size; i > index; i--) {
+				e = e.prev;
+			}
+	
+		return e;
+	}
+
+	private Entry<E> getEntry(Object o){
+		Entry<E> entry = header;
+		while (entry.next != null) {
+			entry = entry.next;
+			if (o == null ? entry.element == o : o.equals(entry.element))
+					return entry;
+		}
+		return null;	
+	}
+
+	public E get(int index){
+		return getEntry(index).element;		
+	}
+
+	public E getFirst(){
+		if (header.next == header)
+			throw new NoSuchElementException();
+		return header.next.element;		
+	}
+
+	public E getLast(){
+		if (header.prev == header)
+			throw new NoSuchElementException();
+		return header.prev.element;		
+	}
+
 	@Override
 	public boolean remove(Object o) {
 		Entry<E> entry = getEntry(o);	
@@ -125,6 +175,14 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 	public boolean remove(int index) {
 		Entry<E> e = getEntry(index);	
 		return removeEntry(e);
+	}
+
+	public boolean removeLast() {	
+		return removeEntry(header.prev);
+	}
+
+	public boolean removeFirst() {
+		return removeEntry(header.next);
 	}
 
 	private boolean removeEntry(Entry<E> e) {
@@ -166,38 +224,5 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 	@Override
 	public int size() {
 		return size;
-	}
-
-	private Entry<E> getEntry(int index) {
-		if (index < 0 || index >= size)
-			throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
-					+ size);
-
-		Entry<E> e = header;
-
-		if (index < (size >> 1))
-			for (int i = 0; i <= index; i++) {
-				e = e.next;
-			}
-		else
-			for (int i = size; i > index; i--) {
-				e = e.prev;
-			}
-
-		return e;
-	}
-	
-	private Entry<E> getEntry(Object o){
-		Entry<E> entry = header;
-		while (entry.next != null) {
-			entry = entry.next;
-			if (o == null ? entry.element == o : o.equals(entry.element))
-					return entry;
-		}
-		return null;	
-	}
-	
-	public E getElement(int index){
-		return getEntry(index).element;		
 	}
 }

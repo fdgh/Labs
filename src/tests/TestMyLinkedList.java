@@ -10,21 +10,26 @@ import main.MyLinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
 public class TestMyLinkedList {
-	 MyLinkedList<Integer> tester;
-	 
+	MyLinkedList<Integer> tester;
+	
+	@Rule 
+	public final Timeout timeout = new Timeout(1000);
+	
 	@Before
 	public void runBeforeEveryTest(){
 		 tester = new MyLinkedList<Integer>();
-		 tester.add(25);
-		 tester.add(14);
-		 tester.add(25);
-		 tester.add(null);
-		 tester.add(10);
-		 tester.add(-5);
-		 tester.add(null);
+		 tester.addLast(25);
+		 tester.addLast(14);
+		 tester.addLast(25);
+		 tester.addLast(null);
+		 tester.addLast(10);
+		 tester.addLast(-5);
+		 tester.addLast(null);
 	}
 	
 	@After
@@ -57,8 +62,35 @@ public class TestMyLinkedList {
 	
 	@Test
 	public void getElement() {
-		Integer i = 14;
-		assertEquals("expected element == 14", i, tester.getElement(1));
+		Integer i = 25;
+		assertEquals("expected element == 25", i, tester.get(0));
+	}
+	
+	@Test
+	public void getLast() {	
+		Integer i = 45;
+		tester.addLast(i);
+		assertEquals("expected element == null", i, tester.getLast());
+	}
+	
+	@Test
+	public void getFirst() {
+		Integer i = 25;
+		assertEquals("expected element == 14", i, tester.getFirst());
+	}
+	
+	@Test
+	public void addFirst() {
+		Integer i = 99;
+		tester.addFirst(99);
+		assertEquals("expected element == 14", i, tester.getFirst());
+	}
+	
+	@Test
+	public void addLast() {
+		Integer i = 77;
+		tester.addLast(77);
+		assertEquals("expected element == 14", i, tester.getLast());
 	}
 	
 	@Test
@@ -71,11 +103,9 @@ public class TestMyLinkedList {
 	@Ignore
 	@Test
 	public void retainAll() {
-		List<Integer> myList = new ArrayList<Integer>();
-		myList.add(-5);
-		MyLinkedList<Integer> retainResult = new MyLinkedList<Integer>();
+		List<Integer> retainResult = new ArrayList<Integer>();
 		retainResult.add(-5);
-		tester.retainAll(myList);
+		tester.retainAll(retainResult);
 		assertEquals("wrong retain", retainResult, tester);
 	}
 	
