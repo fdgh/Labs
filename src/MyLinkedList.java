@@ -52,7 +52,7 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 	}
 
 	private int size;
-	Entry<E> header;
+	private Entry<E> header;
 
 	public MyLinkedList() {
 		size = 0;
@@ -167,18 +167,6 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 		return size;
 	}
 
-	/*@Override
-	public Object[] toArray() {
-		Object[] array = new Object[size];
-		Iterator<E> it = iterator();
-		int i = 0;
-		while (it.hasNext()) {
-			array[i++] = it.next();
-		}
-		return array;
-	}
-	*/
-
 	private Entry<E> getEntry(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
@@ -198,7 +186,6 @@ public class MyLinkedList<E> extends AbstractCollection<E>{
 		return e;
 	}
 	
-	// TODO need to test
 	private Entry<E> getEntry(Object o){
 		Entry<E> entry = header;
 		while (entry.next != null) {
