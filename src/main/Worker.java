@@ -1,9 +1,6 @@
 package main;
 
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class Worker implements Callable<Integer>{
 	int[] mas;
@@ -25,14 +22,16 @@ public class Worker implements Callable<Integer>{
 		this.mas = mas;
 	}
 	
-	public Worker(List<Future<Integer>> list) {
-		this.mas = new int[list.size()];
-		for (int i = 0; i < list.size(); i++) {
-			try {
-				this.mas[i] = list.get(i).get();
-			} catch (InterruptedException | ExecutionException e) {			
-				e.printStackTrace();
-			}
+	public Worker(String[] mas) {
+		this(mas, 0, mas.length);
+	}
+	
+	public Worker(String[] mas, int start, int end) {
+		this.mas = new int[end - start + 1];
+		//TODO ask about it
+		for (int i = start, j = 0 ; i <= end; i++, j++) {
+			this.mas[j] = Integer.parseInt(mas[i]);
 		}
 	}
+	
 }
