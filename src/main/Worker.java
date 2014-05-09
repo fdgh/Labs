@@ -23,7 +23,7 @@ public class Worker implements Callable<Integer>{
 	}
 	
 	public Worker(String[] mas) {
-		this(mas, 0, mas.length);
+		this(mas, 0, mas.length - 1);
 	}
 	
 	public Worker(String[] mas, int start, int end) {
