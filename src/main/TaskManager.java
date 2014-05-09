@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TaskManager {
-	private final static int MAX_COUNT_OF_THREADS = 4;
+	final static int MAX_COUNT_OF_THREADS = 4;
 	
 	public static void main(String[] args) {	
 		try {	
@@ -20,17 +20,21 @@ public class TaskManager {
 			String inputFileName;
 			// if input file name is not specified , then program uses 'input.txt' by default
 			inputFileName = args.length == 0 ? "input.txt" : args[0];
-			final String[] inputData = getInputDataFromFile(inputFileName);	
-			if (inputData == null || inputData.length == 0) throw new IllegalStateException("Can't correctly read from input file");		
+			
+			final List<String[]> inputDataList = getInputDataFromFile(inputFileName);	
 			List<Future<Integer>> resultList = new ArrayList<Future<Integer>>();
-			final int sizeOfPortion = inputData.length / MAX_COUNT_OF_THREADS;
-			if (sizeOfPortion == 0) {
-				resultList.add(exec.submit(new Worker(inputData)));
-			} else {
-				for ( int i = 0; i < MAX_COUNT_OF_THREADS - 1; i++) {
-					resultList.add(exec.submit(new Worker(inputData, i * sizeOfPortion, (i + 1) * sizeOfPortion)));
+
+			for (String[] inputData : inputDataList) {
+				if (inputData == null || inputData.length == 0) throw new IllegalStateException("Can't correctly read from input file");		
+				final int sizeOfPortion = inputData.length / MAX_COUNT_OF_THREADS;
+				if (sizeOfPortion == 0) {
+					resultList.add(exec.submit(new Worker(inputData)));
+				} else {
+					for ( int i = 0; i < MAX_COUNT_OF_THREADS - 1; i++) {
+						resultList.add(exec.submit(new Worker(inputData, i * sizeOfPortion, (i + 1) * sizeOfPortion)));
+					}
+					resultList.add(exec.submit(new Worker(inputData, (MAX_COUNT_OF_THREADS - 1) * sizeOfPortion, inputData.length - 1)));
 				}
-				resultList.add(exec.submit(new Worker(inputData, (MAX_COUNT_OF_THREADS - 1) * sizeOfPortion, inputData.length - 1)));
 			}
 			//Executor will not accept new threads
 			//and will finish all existing threads in the queue
@@ -42,6 +46,7 @@ public class TaskManager {
 			for (int i = 0; i < resultList.size(); i++) {
 				result = Math.max(resultList.get(i).get(), result);
 			}
+			
 			System.out.println("The max value is " + Integer.toString(result));
 		} catch (NumberFormatException e) {
 			System.err.println("Can't parse to int");
@@ -55,13 +60,15 @@ public class TaskManager {
 		} 
 	}
 
-	private static String[] getInputDataFromFile(String fileName) throws IOException {
+	private static List<String[]> getInputDataFromFile(String fileName) throws IOException {
 		if (fileName == null) throw new NullPointerException("File name can't be null");
 		BufferedReader br = null;
-		String[] inputData = null;
+		List<String[]> inputData = new ArrayList<String[]>();
 		try {
 			br = new BufferedReader(new FileReader(fileName));
-			inputData = br.readLine().split(" ");			
+			while(br.ready()) {
+				inputData.add(br.readLine().split(" "));
+			}
 		} finally {
 			try {
 				if (br != null) br.close();
