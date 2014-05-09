@@ -20,11 +20,8 @@ public class TaskManager {
 			String inputFileName;
 			// if input file name is not specified , then program uses 'input.txt' by default
 			inputFileName = args.length == 0 ? "input.txt" : args[0];
-			
 			final String[] inputData = getInputDataFromFile(inputFileName);	
-			
-			if (inputData == null) throw new IllegalStateException();		
-			
+			if (inputData == null || inputData.length == 0) throw new IllegalStateException("Can't correctly read from input file");		
 			List<Future<Integer>> resultList = new ArrayList<Future<Integer>>();
 			final int sizeOfPortion = inputData.length / MAX_COUNT_OF_THREADS;
 			if (sizeOfPortion == 0) {
@@ -45,7 +42,6 @@ public class TaskManager {
 			for (int i = 0; i < resultList.size(); i++) {
 				result = Math.max(resultList.get(i).get(), result);
 			}
-			
 			System.out.println("The max value is " + Integer.toString(result));
 		} catch (NumberFormatException e) {
 			System.err.println("Can't parse to int");
