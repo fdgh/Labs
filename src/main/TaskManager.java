@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TaskManager {
-	final static int MAX_COUNT_OF_THREADS = 4;
+	private final static int MAX_COUNT_OF_THREADS = 4;
 	
 	public static void main(String[] args) {	
 		try {	
