@@ -3,7 +3,7 @@ package main;
 import java.util.concurrent.Callable;
 
 public class Worker implements Callable<Integer>{
-	int[] mas;
+	private int[] mas;
 
 	@Override
 	public Integer call() throws Exception {
