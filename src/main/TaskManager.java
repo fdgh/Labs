@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TaskManager {
-	final static int MAX_COUNT_OF_THREADS = 4;
+	private final static int MAX_COUNT_OF_THREADS = 4;
 	
 	public static void main(String[] args) {	
 		try {	
@@ -25,16 +25,8 @@ public class TaskManager {
 			List<Future<Integer>> resultList = new ArrayList<Future<Integer>>();
 
 			for (String[] inputData : inputDataList) {
-				if (inputData == null || inputData.length == 0) throw new IllegalStateException("Can't correctly read from input file");		
-				final int sizeOfPortion = inputData.length / MAX_COUNT_OF_THREADS;
-				if (sizeOfPortion == 0) {
-					resultList.add(exec.submit(new Worker(inputData)));
-				} else {
-					for ( int i = 0; i < MAX_COUNT_OF_THREADS - 1; i++) {
-						resultList.add(exec.submit(new Worker(inputData, i * sizeOfPortion, (i + 1) * sizeOfPortion)));
-					}
-					resultList.add(exec.submit(new Worker(inputData, (MAX_COUNT_OF_THREADS - 1) * sizeOfPortion, inputData.length - 1)));
-				}
+				if (inputData == null || inputData.length == 0) throw new IllegalStateException("Can't correctly read from input file");						
+				resultList.add(exec.submit(new Worker(inputData)));
 			}
 			//Executor will not accept new threads
 			//and will finish all existing threads in the queue
@@ -46,7 +38,7 @@ public class TaskManager {
 			for (int i = 0; i < resultList.size(); i++) {
 				result = Math.max(resultList.get(i).get(), result);
 			}
-			
+		
 			System.out.println("The max value is " + Integer.toString(result));
 		} catch (NumberFormatException e) {
 			System.err.println("Can't parse to int");
