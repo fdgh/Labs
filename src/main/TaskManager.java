@@ -12,8 +12,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class TaskManager {
-	private final static int MAX_NUMBER_OF_THREADS_DEFAULT_VALUE = 10;
+/**
+ * Used to calculate max value between int values
+ * 
+ * @author Sitnikov
+ */
+public abstract class TaskManager {
+	private final static int MAX_COUNT_OF_THREADS_DEFAULT_VALUE = 10;
 	private final static String INPUT_FILE_NAME_DEAFAULT_VALUE = "input.txt";
 
 	public static void main(String[] args) {	
@@ -21,8 +26,8 @@ public class TaskManager {
 			// if input file name is not specified , then program uses INPUT_FILE_NAME_DEAFAULT_VALUE by default
 			 String inputFileName = args.length > 0 ?  args[0] : INPUT_FILE_NAME_DEAFAULT_VALUE;
 			 File input = new File(inputFileName);;
-			// if threads number is not specified , then program uses MAX_NUMBER_OF_THREADS_DEFAULT_VALUE by default
-			int threadsNumber = args.length > 1 ? Integer.parseInt(args[1]) : MAX_NUMBER_OF_THREADS_DEFAULT_VALUE; 			
+			// if threads number is not specified , then program uses MAX_COUNT_OF_THREADS_DEFAULT_VALUE by default
+			int threadsNumber = args.length > 1 ? Integer.parseInt(args[1]) : MAX_COUNT_OF_THREADS_DEFAULT_VALUE; 			
 			
 			int result = calculateMax(threadsNumber, input);
 			System.out.println("The max value is " + Integer.toString(result));
@@ -45,6 +50,7 @@ public class TaskManager {
 		
 		try {
 			br = new BufferedReader(new FileReader(input));
+			if (!br.ready()) throw new IOException(); 
 			while (br.ready()) {
 				String inputData = br.readLine();
 				if (inputData == null || inputData.isEmpty()) throw new IllegalStateException("Can't correctly read from input file");						
@@ -64,11 +70,9 @@ public class TaskManager {
 		}
 		//calculate
 		int result = Integer.MIN_VALUE;	
-		for (int i = 0; i < resultList.size(); i++) {
-			result = Math.max(resultList.get(i).get(), result);
+		for (Future<Integer> f : resultList) {
+			result = Math.max(f.get(), result);
 		}
 		return result;	
 	}
-	
-	
 }
