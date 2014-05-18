@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TaskManager {
-	private final static int MAX_COUNT_OF_THREADS_DEFAULT_VALUE = 10;
+	private final static int MAX_NUMBER_OF_THREADS_DEFAULT_VALUE = 10;
 	private final static String INPUT_FILE_NAME_DEAFAULT_VALUE = "input.txt";
 
 	public static void main(String[] args) {	
@@ -21,8 +21,8 @@ public class TaskManager {
 			// if input file name is not specified , then program uses INPUT_FILE_NAME_DEAFAULT_VALUE by default
 			 String inputFileName = args.length > 0 ?  args[0] : INPUT_FILE_NAME_DEAFAULT_VALUE;
 			 File input = new File(inputFileName);;
-			// if threads number is not specified , then program uses MAX_COUNT_OF_THREADS_DEFAULT_VALUE by default
-			int threadsNumber = args.length > 1 ? Integer.parseInt(args[1]) : MAX_COUNT_OF_THREADS_DEFAULT_VALUE; 			
+			// if threads number is not specified , then program uses MAX_NUMBER_OF_THREADS_DEFAULT_VALUE by default
+			int threadsNumber = args.length > 1 ? Integer.parseInt(args[1]) : MAX_NUMBER_OF_THREADS_DEFAULT_VALUE; 			
 			
 			int result = calculateMax(threadsNumber, input);
 			System.out.println("The max value is " + Integer.toString(result));
