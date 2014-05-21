@@ -16,7 +16,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -29,13 +28,15 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+/**
+ * 
+ * @author Sitnikov
+ *
+ */
+
 public class Client {
- 
-    JTextArea area;
-    JTextField fieldIP;
-    JTextField fieldPort; 
-    
-    List<String> selectedFiles;
+
+    private List<String> selectedFiles;
     
     public Client(){
         initUI();        
@@ -47,14 +48,10 @@ public class Client {
          f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
          f.setSize(440, 400);
          f.setLayout(new GridBagLayout());
-         
-
-         
-         area = new JTextArea();
-         fieldIP = new JTextField("127.0.0.1");
-         fieldPort = new JTextField("2154");
-         ((AbstractDocument)fieldPort.getDocument()).setDocumentFilter(
-                 new DocumentFilterOnlyDigits()); 
+         final JTextArea area = new JTextArea();
+         final JTextField fieldIP = new JTextField("127.0.0.1");
+         final JTextField fieldPort = new JTextField("2154");
+         ((AbstractDocument)fieldPort.getDocument()).setDocumentFilter(new DocumentFilterOnlyDigits()); 
          final JScrollPane scroll = new JScrollPane(area);
          final JButton selectBut = new JButton("Select");
          final JButton hashBut = new JButton("Get MD5 hash of chosen files");
@@ -82,7 +79,6 @@ public class Client {
          c.gridy = 2;
          f.add(card2, c);
          f.setVisible(true);
-
          sendBut.addActionListener(new ActionListener() {
          
              @Override
@@ -219,32 +215,46 @@ public class Client {
         }   
     }
     
-    class DocumentFilterOnlyDigits extends DocumentFilter
+    private class DocumentFilterOnlyDigits extends DocumentFilter
     {   
         @Override
-        public void insertString(DocumentFilter.FilterBypass fp
-                , int offset, String string, AttributeSet aset)
-                                    throws BadLocationException {
+        public void insertString(DocumentFilter.FilterBypass fp, 
+        		int offset, 
+        		String string,
+        		AttributeSet aset) 
+        				throws BadLocationException {
         
-        	if (checkForDigits(fp, offset,  string, aset))
+            if (checkForDigits(string)) {
                 super.insertString(fp, offset, string, aset);
-            else
+            } else {
                 Toolkit.getDefaultToolkit().beep();
+            }
 
         }
 
         @Override
-        public void replace(DocumentFilter.FilterBypass fp, int offset
-                        , int length, String string, AttributeSet aset)
-                                            throws BadLocationException {
-        if (checkForDigits(fp, offset, string, aset))
-            super.replace(fp, offset, length, string, aset);
-        else
-            Toolkit.getDefaultToolkit().beep();
-
+        public void replace(DocumentFilter.FilterBypass fp, 
+        		int offset, int length, 
+        		String string, 
+        		AttributeSet aset) 
+        				throws BadLocationException {
+                                            
+        	if (checkForDigits(string)) {
+				super.replace(fp, offset, length, string, aset);
+				
+        	} else {
+        		Toolkit.getDefaultToolkit().beep();
+        	}
         }
-        private boolean checkForDigits(DocumentFilter.FilterBypass fp, int offset,
-                  String string, AttributeSet aset) throws BadLocationException {
+        
+        /**
+         * Check string for digits
+         * 
+         * @param string
+         * @return true - if string contains only digits, false - if not 
+         *
+         */
+        private boolean checkForDigits(String string) {
         	
         	int len = string.length();
             boolean isValidInteger = true;
