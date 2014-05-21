@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -90,8 +92,10 @@ public class Client {
             		 InetAddress ipAddress = null;
             		 ipAddress = InetAddress.getByName(addres);
             		 socket = new Socket(ipAddress, port);
-            		 sendFiles(selectedFiles, socket); 
-            		 area.append("Sended successful");
+            		 boolean isSuccessful;
+            		 isSuccessful = sendFiles(selectedFiles, socket); 
+            		 String result = isSuccessful ? "successful" : "unsuccessful";
+            		 area.append("Sended " + result);
             	 } catch(Exception e) {
             		 area.append(e.toString());
             		 e.printStackTrace();
@@ -159,8 +163,8 @@ public class Client {
                      area.append("Chosen files:\n" );
                      File[] file = chooser.getSelectedFiles();
                      for (File d : file){
-                         selectedFiles.add(d+"");
-                         area.append(d+"\n");
+                         selectedFiles.add(d + "");
+                         area.append(d + "\n");
                          
                      }       
                      sendBut.setEnabled(true);
@@ -181,38 +185,54 @@ public class Client {
 		return hashText;  	
     }
     
-    private void sendFiles(List<String> selectedFiles, Socket socket){
-
-        
+    private boolean sendFiles(List<String> selectedFiles, Socket socket){
+        boolean isSuccessful = false;
         int countFiles = selectedFiles.size();
         
-        DataOutputStream outD; 
+        DataOutputStream dout = null; 
+        DataInputStream din = null;
         try{
-            outD = new DataOutputStream(socket.getOutputStream());
-            
-            outD.writeInt(countFiles);
+            dout = new DataOutputStream(socket.getOutputStream());
+            din = new DataInputStream(socket.getInputStream());
+            dout.writeInt(countFiles);
                         
-            for(int i = 0; i < countFiles; i++){
+            for (int i = 0; i < countFiles; i++){
                 File f = new File(selectedFiles.get(i));
-                                
-                outD.writeLong(f.length());
-                outD.writeUTF(f.getName());
+                //sending length of file                
+                dout.writeLong(f.length());
+                //sending file name
+                dout.writeUTF(f.getName());
             
                 FileInputStream in = new FileInputStream(f);
                 byte [] buffer = new byte[64 * 1024];
                 int count;
                 
                 while((count = in.read(buffer)) != -1){
-                    outD.write(buffer, 0, count);
+                    dout.write(buffer, 0, count);
                 }
-                outD.flush();
-                in.close();
-            }           
-            socket.close();         
-        }
-        catch(IOException e){
+                dout.flush();
+                try {
+                	in.close();
+                } catch (IOException e) {
+                	e.printStackTrace();
+                }
+            }      
+            isSuccessful = din.readBoolean();
+        } catch(IOException e){
             e.printStackTrace();
-        }   
+        } finally {
+        	try {
+        		if (dout != null) dout.close();
+        	} catch (IOException e) {
+        		e.printStackTrace();
+        	}
+        	try {
+        		if (din != null) din.close();
+        	} catch (IOException e) {
+        		e.printStackTrace();
+        	}
+        }
+		return isSuccessful;   
     }
     
     private class DocumentFilterOnlyDigits extends DocumentFilter
