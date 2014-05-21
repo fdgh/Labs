@@ -224,31 +224,29 @@ public class Client {
         @Override
         public void insertString(DocumentFilter.FilterBypass fp
                 , int offset, String string, AttributeSet aset)
-                                    throws BadLocationException
-        {
-            int len = string.length();
-            boolean isValidInteger = true;
-
-            for (int i = 0; i < len; i++)
-            {
-                if (!Character.isDigit(string.charAt(i)))
-                {
-                    isValidInteger = false;
-                    break;
-                }
-            }
-            if (isValidInteger)
+                                    throws BadLocationException {
+        
+        	if (checkForDigits(fp, offset,  string, aset))
                 super.insertString(fp, offset, string, aset);
             else
                 Toolkit.getDefaultToolkit().beep();
+
         }
 
         @Override
         public void replace(DocumentFilter.FilterBypass fp, int offset
                         , int length, String string, AttributeSet aset)
-                                            throws BadLocationException
-        {
-            int len = string.length();
+                                            throws BadLocationException {
+        if (checkForDigits(fp, offset, string, aset))
+            super.replace(fp, offset, length, string, aset);
+        else
+            Toolkit.getDefaultToolkit().beep();
+
+        }
+        private boolean checkForDigits(DocumentFilter.FilterBypass fp, int offset,
+                  String string, AttributeSet aset) throws BadLocationException {
+        	
+        	int len = string.length();
             boolean isValidInteger = true;
 
             for (int i = 0; i < len; i++)
@@ -259,10 +257,7 @@ public class Client {
                     break;
                 }
             }
-            if (isValidInteger)
-                super.replace(fp, offset, length, string, aset);
-            else
-                Toolkit.getDefaultToolkit().beep();
+            return isValidInteger;
         }
     }
     
