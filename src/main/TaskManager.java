@@ -54,7 +54,7 @@ public abstract class TaskManager {
 			while (br.ready()) {
 				String inputData = br.readLine();
 				if (inputData == null || inputData.isEmpty()) throw new IllegalStateException("Can't correctly read from input file");						
-				resultList.add(exec.submit(new Worker(inputData.split(" "))));
+				resultList.add(exec.submit(new Worker(inputData)));
 			}
 		} finally {
 			try {
@@ -65,9 +65,6 @@ public abstract class TaskManager {
 		}
 		//Executor will not accept new threads and will finish all existing threads in the queue
 		exec.shutdown();
-		// wait until all threads are finish
-		while(!exec.isTerminated()) {				
-		}
 		//calculate
 		int result = Integer.MIN_VALUE;	
 		for (Future<Integer> f : resultList) {
