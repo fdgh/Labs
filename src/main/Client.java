@@ -139,7 +139,7 @@ public class Client {
 	                
 	                private void printResultOfSendingFiles(boolean isSuccessful) {
 	                	String result = isSuccessful ? "successful" : "unsuccessful";
-	               		area.append("Sended " + result);
+	               		area.append("Sended " + result + "\n");
 	                }
 	            });
 	            
