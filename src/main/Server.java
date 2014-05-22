@@ -1,3 +1,4 @@
+package main;
 import java.awt.BorderLayout;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -5,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,32 +19,26 @@ public class Server {
 	private final static int PORT = 2154;
 	private final static int MAX_NUMBER_OF_THREADS = 3;
 	private final static int SIZE_OF_BUFFER = 64 * 1024;
+	
 	public Server() {
 		initUI();
 		ExecutorService exec = null;
 		ServerSocket ss = null;
 		try {
 			ss = new ServerSocket(PORT);
-			area.append("Wait connect...");
+			area.append("Wait connect...\n");
 			exec = Executors.newFixedThreadPool(MAX_NUMBER_OF_THREADS);
 			while (true) {
 				Socket s = null;
-				//TODO ask about it
 				try {
 					s = ss.accept();
 					exec.execute(new Connect(s));
 				} catch (IOException e) {
 					e.printStackTrace();
-				} finally {
-					try {
-						if (s != null) s.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				} 
 			}
 		} catch(IOException e) {
-			area.append("Can't use " + PORT + " socket");
+			area.append("Can't use " + PORT + " socket\n");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -61,6 +57,7 @@ public class Server {
 		f.setLayout(new BorderLayout());
 		
 		area = new JTextArea();
+		area.setEditable(false);
 		JScrollPane scroll = new JScrollPane(area);
 		f.add(scroll);
 		
@@ -69,31 +66,67 @@ public class Server {
 	}
 
 	public class Connect implements Runnable{
-		 Connect(Socket socket) {
+		Socket socket = null;
+		StringBuilder downloadHistory;
+
+		Connect(Socket socket) {
+			this.socket = socket;
+			downloadHistory = new StringBuilder();
+		}
+		
+		@Override
+		public void run() {
+			boolean hasDownloaded;
+		
+			hasDownloaded = downloadFiles();
+			sendCallbackAndCloseSocket(hasDownloaded);
+			printHistory();
+		}	
+		
+		private void sendCallbackAndCloseSocket(boolean isSuccessful) {
+			DataOutputStream dout = null;
+			try {
+				dout = new DataOutputStream(socket.getOutputStream());
+				dout.writeBoolean(isSuccessful);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (dout != null) dout.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		private void printHistory() {
+			area.append(downloadHistory.toString());
+		}
+		
+		private boolean downloadFiles() {
 			DataInputStream din = null;
 			FileOutputStream fout = null;
-			boolean isSuccessful = true;
+			boolean isSuccessful = false;
 			try {
 				din = new DataInputStream(socket.getInputStream());
 				int filesCount = din.readInt();
-				area.append("\n------------------------------------------------------\n");
-				area.append("Download " + filesCount + " files\n");
-
+				downloadHistory.append("\n---------------------------------\n");
+				downloadHistory.append("Download " + filesCount + " files\n");
+				downloadHistory.append("Started at " + new Date() + "\n");
 				for (int i = 0; i < filesCount; i++) {
-					area.append("Processing " + (i + 1) + " file\n");
+					downloadHistory.append("\nProcessing " + (i + 1) + " file\n");
 					long fileSize = din.readLong(); 
 					String fileName = din.readUTF(); 
-					area.append("File name: " + fileName + "\n");
-					area.append("File size: " + fileSize + " byte\n");
+					downloadHistory.append("File name: " + fileName + "\n");
+					downloadHistory.append("File size: " + fileSize + " byte\n");
 					
 					fout = new FileOutputStream(fileName);
 					int count;
 					long total = fileSize;
-					
+					byte[] buffer = new byte[SIZE_OF_BUFFER];
 					while (total > 0) {
-						int bufferSize = (int) Math.min((long)SIZE_OF_BUFFER, total);
-						byte[] buffer = new byte[bufferSize];
-						count = din.read(buffer);
+						int bufferSize = (int) Math.min((long) SIZE_OF_BUFFER, total);
+						count = din.read(buffer, 0, bufferSize);
 						total -= count;
 						fout.write(buffer, 0, count);
 					}
@@ -103,43 +136,24 @@ public class Server {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					area.append("Download complete\n---------------------------------\n");
 				}
+				isSuccessful = true;
+				
+				downloadHistory.append("\nDownload complete\nEnded at " + new Date());
+				downloadHistory.append("\n---------------------------------\n");
+				
 			} catch (Exception e) {
-				area.append("Download failed!!!\n");
-				isSuccessful = false;
+				downloadHistory.append("\nDownload failed!!!\n");
 				e.printStackTrace();
 			} finally {
-				DataOutputStream dout = null;
 				try {
-					dout = new DataOutputStream(socket.getOutputStream());
-					dout.writeBoolean(isSuccessful);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						if (dout != null) dout.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				try {
-					if (din != null)
-						din.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				try {
-					if (fout != null)
-						fout.close();
+					if (fout != null) fout.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+			return isSuccessful;
 		}
-
-		@Override
-		public void run() {}		
 	}
 	
 
