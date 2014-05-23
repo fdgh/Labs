@@ -301,11 +301,7 @@ public class Client {
          *
          */
         private boolean checkForDigits(String string) {
-        	
-            boolean isValidInteger = true;
-            isValidInteger = Pattern.matches("[0-9]*", string);
-            
-            return isValidInteger;
+            return Pattern.matches("[0-9]*", string);;
         }
     }
     
