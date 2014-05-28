@@ -23,29 +23,17 @@ public class Server {
 	public Server() {
 		initUI();
 		ExecutorService exec = null;
-		ServerSocket ss = null;
-		try {
-			ss = new ServerSocket(PORT);
+		try (ServerSocket ss = new ServerSocket(PORT)){
 			area.append("Wait connect...\n");
 			exec = Executors.newFixedThreadPool(MAX_NUMBER_OF_THREADS);
 			while (true) {
-				Socket s = null;
-				try {
-					s = ss.accept();
-					exec.execute(new Connect(s));
-				} catch (IOException e) {
-					e.printStackTrace();
-				} 
+				Socket s = ss.accept();
+				exec.execute(new Connect(s));
 			}
 		} catch(IOException e) {
 			area.append("Can't use " + PORT + " socket\n");
 			e.printStackTrace();
 		} finally {
-			try {
-				if (ss != null) ss.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 			if (exec != null) exec.shutdown();
 		}
 	}
@@ -84,19 +72,11 @@ public class Server {
 		}	
 		
 		private void sendCallbackAndCloseSocket(boolean isSuccessful) {
-			DataOutputStream dout = null;
-			try {
-				dout = new DataOutputStream(socket.getOutputStream());
+			try (DataOutputStream dout = new DataOutputStream(socket.getOutputStream())){
 				dout.writeBoolean(isSuccessful);
 			} catch (IOException e) {
 				e.printStackTrace();
-			} finally {
-				try {
-					if (dout != null) dout.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+			} 
 		}
 		
 		private void printHistory() {
@@ -104,11 +84,9 @@ public class Server {
 		}
 		
 		private boolean downloadFiles() {
-			DataInputStream din = null;
-			FileOutputStream fout = null;
 			boolean isSuccessful = false;
 			try {
-				din = new DataInputStream(socket.getInputStream());
+				DataInputStream din = new DataInputStream(socket.getInputStream());
 				int filesCount = din.readInt();
 				downloadHistory.append("\n---------------------------------\n");
 				downloadHistory.append("Download " + filesCount + " files\n");
@@ -120,20 +98,18 @@ public class Server {
 					downloadHistory.append("File name: " + fileName + "\n");
 					downloadHistory.append("File size: " + fileSize + " byte\n");
 					
-					fout = new FileOutputStream(fileName);
-					int count;
-					long total = fileSize;
-					byte[] buffer = new byte[SIZE_OF_BUFFER];
-					while (total > 0) {
-						int bufferSize = (int) Math.min((long) SIZE_OF_BUFFER, total);
-						count = din.read(buffer, 0, bufferSize);
-						total -= count;
-						fout.write(buffer, 0, count);
-					}
-					fout.flush();
-					try {
-						fout.close();
-					} catch (Exception e) {
+					try (FileOutputStream fout = new FileOutputStream(fileName)) {
+						int count;
+						long total = fileSize;
+						byte[] buffer = new byte[SIZE_OF_BUFFER];
+						while (total > 0) {
+							int bufferSize = (int) Math.min((long) SIZE_OF_BUFFER, total);
+							count = din.read(buffer, 0, bufferSize);
+							total -= count;
+							fout.write(buffer, 0, count);
+						}
+						fout.flush();
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -142,16 +118,10 @@ public class Server {
 				downloadHistory.append("\nDownload complete\nEnded at " + new Date());
 				downloadHistory.append("\n---------------------------------\n");
 				
-			} catch (Exception e) {
+			} catch (IOException e) {
 				downloadHistory.append("\nDownload failed!!!\n");
 				e.printStackTrace();
-			} finally {
-				try {
-					if (fout != null) fout.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+			} 
 			return isSuccessful;
 		}
 	}
